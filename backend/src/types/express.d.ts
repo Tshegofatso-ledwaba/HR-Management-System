@@ -1,3 +1,13 @@
 import type { Role } from "@prisma/client";
-declare global { namespace Express { interface Request { auth?: { userId: string; role: Role; employeeId?: string | null } } } }
-export {};
+
+export type AuthContext = {
+	userId: string;
+	role: Role;
+	employeeId?: string | null;
+};
+
+declare module "express-serve-static-core" {
+	interface Request {
+		auth?: AuthContext;
+	}
+}

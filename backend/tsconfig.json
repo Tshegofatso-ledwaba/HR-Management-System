@@ -4,5 +4,6 @@
     "outDir": "dist", "rootDir": ".", "strict": true, "esModuleInterop": true,
     "skipLibCheck": true, "forceConsistentCasingInFileNames": true
   },
-  "include": ["src", "prisma"]
+  "files": ["src/types/express.d.ts"],
+  "include": ["src/**/*.ts", "prisma/**/*.ts"]
 }

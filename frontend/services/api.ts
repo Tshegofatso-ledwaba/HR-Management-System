@@ -1,9 +1,15 @@
 export type DashboardStats = { employees: number; active: number; departments: number; pending: number; approved: number; rejected: number };
 type ApiResponse<T> = { success: boolean; message: string; data: T };
-const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api";
+const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  if (!apiUrl) throw new Error("API is not configured. Set NEXT_PUBLIC_API_URL in the frontend deployment.");
   const token = typeof window === "undefined" ? null : localStorage.getItem("hrflow_token");
-  const response = await fetch(`${apiUrl}${path}`, { ...init, headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}), ...init?.headers } });
+  let response: Response;
+  try {
+    response = await fetch(`${apiUrl}${path}`, { ...init, headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}), ...init?.headers } });
+  } catch {
+    throw new Error("Unable to reach the HR Management API. Check the deployed backend URL and CORS settings.");
+  }
   const payload = await response.json() as ApiResponse<T>;
   if (!response.ok || !payload.success) throw new Error(payload.message);
   return payload.data;

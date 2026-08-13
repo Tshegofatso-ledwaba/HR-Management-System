@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+enum Role {
+  ADMIN
+  HR_MANAGER
+  HR_OFFICER
+  EMPLOYEE
+}
+enum EmploymentStatus {
+  ACTIVE
+  ON_LEAVE
+  INACTIVE
+  TERMINATED
+}
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model User {
+  id String @id @default(cuid())
+  email String @unique
+  passwordHash String
+  role Role @default(EMPLOYEE)
+  employeeId String? @unique
+  employee Employee? @relation(fields: [employeeId], references: [id])
+  isActive Boolean @default(true)
+  notifications Notification[]
+  activities ActivityLog[]
+  reviewedLeaves LeaveRequest[] @relation("LeaveReviewer")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model Employee {
+  id String @id @default(cuid())
+  employeeNumber String @unique
+  firstName String
+  lastName String
+  email String @unique
+  phone String?
+  dateOfBirth DateTime?
+  gender String?
+  address String?
+  city String?
+  province String?
+  postalCode String?
+  hireDate DateTime
+  employmentStatus EmploymentStatus @default(ACTIVE)
+  jobTitle String
+  departmentId String?
+  department Department? @relation(fields: [departmentId], references: [id])
+  managerId String?
+  manager Employee? @relation("EmployeeManager", fields: [managerId], references: [id])
+  reports Employee[] @relation("EmployeeManager")
+  user User?
+  leaveRequests LeaveRequest[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model Department {
+  id String @id @default(cuid())
+  name String @unique
+  description String?
+  managerId String?
+  employees Employee[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model LeaveType {
+  id String @id @default(cuid())
+  name String @unique
+  description String?
+  annualAllowance Int @default(20)
+  requests LeaveRequest[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model LeaveRequest {
+  id String @id @default(cuid())
+  employeeId String
+  employee Employee @relation(fields: [employeeId], references: [id])
+  leaveTypeId String
+  leaveType LeaveType @relation(fields: [leaveTypeId], references: [id])
+  startDate DateTime
+  endDate DateTime
+  reason String
+  status LeaveStatus @default(PENDING)
+  reviewNotes String?
+  reviewedBy String?
+  reviewer User? @relation("LeaveReviewer", fields: [reviewedBy], references: [id])
+  reviewedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model Notification {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id])
+  title String
+  message String
+  type String
+  isRead Boolean @default(false)
+  createdAt DateTime @default(now())
+}
+model ActivityLog {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id])
+  action String
+  description String
+  ipAddress String?
+  createdAt DateTime @default(now())
+}

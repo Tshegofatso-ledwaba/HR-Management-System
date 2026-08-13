@@ -1,0 +1,3 @@
+import type { NextFunction, Request, Response } from "express";
+export const notFound = (_request: Request, response: Response) => response.status(404).json({ success: false, message: "Resource not found" });
+export const errorHandler = (error: Error, _request: Request, response: Response, _next: NextFunction) => { console.error(error.message); response.status(500).json({ success: false, message: "An unexpected error occurred" }); };

@@ -1,8 +1,14 @@
 export type DashboardStats = { employees: number; active: number; departments: number; pending: number; approved: number; rejected: number };
 type ApiResponse<T> = { success: boolean; message: string; data: T };
-const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+
+const normalizeApiBaseUrl = (value?: string) => {
+  const raw = (value || "http://localhost:4000/api").trim().replace(/\/+$/, "");
+  return /\/api$/i.test(raw) ? raw : `${raw}/api`;
+};
+
+const apiUrl = normalizeApiBaseUrl(process.env.NEXT_PUBLIC_API_URL);
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  if (!apiUrl) throw new Error("API is not configured. Set NEXT_PUBLIC_API_URL in the frontend deployment.");
   const token = typeof window === "undefined" ? null : localStorage.getItem("hrflow_token");
   let response: Response;
   try {
